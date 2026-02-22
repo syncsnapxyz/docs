@@ -1,0 +1,45 @@
+---
+title: "Development"
+description: "Preview changes locally and update your docs"
+---
+
+<Note>
+**Prerequisites**: Node.js v20.17.0 or higher, and a docs directory with a `docs.json` file.
+</Note>
+
+## Run the dev server
+
+1. Install the Mintlify CLI globally:
+
+```bash
+npm i -g mint
+```
+
+2. From the repo root, go to the docs folder and start the dev server:
+
+```bash
+cd docs
+mint dev
+```
+
+A local preview will be available at `http://localhost:3000`.
+
+## Custom port
+
+Use the `--port` flag to run on a different port:
+
+```bash
+mint dev --port 3333
+```
+
+## Useful commands
+
+- **Validate links**: `mint broken-links` — find broken links in your docs
+- **Update CLI**: `mint update` — ensure you have the latest Mintlify CLI
+
+## Troubleshooting
+
+- **404s or dev not starting**: Ensure you're in the folder that contains `docs.json`.
+- **Outdated Node**: Install Node v20.17.0+ and reinstall the CLI: `npm remove -g mint` then `npm i -g mint`.
+
+For more, see the [Mintlify docs](https://mintlify.com/docs).

@@ -1,0 +1,5 @@
+# Mintlify automatically ignores: .git, .github, node_modules, README.md, etc.
+
+# Draft content
+drafts/
+*.draft.mdx
