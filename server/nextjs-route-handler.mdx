@@ -1,0 +1,87 @@
+---
+title: "Next.js route handler"
+description: "Single catch-all route for SyncSnap with the App Router"
+---
+
+# Next.js route handler
+
+The `syncsnap` package exports `createRouteHandler` from `syncsnap/next`. It returns `GET` and `POST` handlers that implement the endpoints the React SDK expects (create job, get job, **wait for completion**, get download URL), so you can wire SyncSnap with one file.
+
+## Setup
+
+Create this file in your Next.js App Router app:
+
+**`app/api/syncsnap/[...syncsnap]/route.ts`**
+
+```ts
+import { SyncsnapServer } from "syncsnap";
+import { createRouteHandler } from "syncsnap/next";
+
+const client = new SyncsnapServer();
+
+export const { GET, POST } = createRouteHandler({
+  client,
+  onCompleted: async (job, presigned) => {
+    // Optional. Runs when the job completes (after server-side wait). Return value is sent to the client as onCompleted(job, result).
+    return presigned ? { downloadUrl: presigned.url, fileName: presigned.fileName } : undefined;
+  },
+});
+```
+
+Ensure `SYNCSNAP_TOKEN` is set in your environment.
+
+## Routes implemented
+
+The catch-all segment `[...syncsnap]` is resolved to path segments. The handler maps them as follows:
+
+| Request | Path segments | Action |
+|---------|----------------|--------|
+| `POST /api/syncsnap/job` | `["job"]` | Create job → `client.createJob()`, return JSON. |
+| `GET /api/syncsnap/job/:id` | `["job", id]` | Get job → `client.getJob(id)`, return JSON. |
+| `GET /api/syncsnap/job/:id/wait` | `["job", id, "wait"]` | Wait for completion → `client.waitForJobCompletion(id)` (with optional `timeoutMs`, `intervalMs` query params), then return `{ job, result? }`. The `result` is what your `onCompleted` callback returned, or the presigned URL when no callback. |
+| `GET /api/syncsnap/job/:id/download` | `["job", id, "download"]` | Get download URL → `client.getDownloadUrl(id, { expirationMinutes })`, return JSON (and optionally `completedPayload` when `onCompleted` is set). |
+
+Any other path returns `404` with `{ error: "Not found" }`.
+
+## onCompleted callback
+
+When you pass `onCompleted` to `createRouteHandler`, it is called when a job completes (in the wait handler) or when the download endpoint is used. Its return value is sent to the client: in the wait flow it becomes the `result` in `onCompleted(job, result)`; in the download response it is included as `completedPayload`. Use it to return a custom payload (e.g. `{ downloadUrl, fileName }`) instead of exposing the raw presigned URL.
+
+## Wait endpoint query params
+
+The wait route accepts:
+
+- `timeoutMs` — Max time to wait (ms). Default from client is 120000.
+- `intervalMs` — Poll interval (ms). Default from client is 2000.
+
+The React SDK sends these when it calls the wait URL.
+
+## Download URL expiration
+
+The download endpoint reads the `expiration` query parameter (in minutes) and passes it to `getDownloadUrl`:
+
+```
+GET /api/syncsnap/job/:id/download?expiration=15
+```
+
+If omitted, the SDK default is used.
+
+## Using a different base path
+
+If you want the API under a different prefix (e.g. `/api/transfer`), move the route folder:
+
+- **`app/api/transfer/[...syncsnap]/route.ts`** — same code; routes become `POST /api/transfer/job`, `GET /api/transfer/job/:id`, `GET /api/transfer/job/:id/wait`, `GET /api/transfer/job/:id/download`.
+
+Then point the React SDK at that base:
+
+```tsx
+<SyncsnapUploadButton
+  createJobUrl="/api/transfer/job"
+  getJobUrl={(id) => `/api/transfer/job/${id}`}
+  getWaitForCompletionUrl={(id) => `/api/transfer/job/${id}/wait`}
+/>
+```
+
+## Without the catch-all
+
+If you prefer separate route files, implement the same logic: create job (POST), get job (GET), wait for completion (GET with optional timeout/interval), get download URL (GET with optional expiration). The React SDK only cares about the URL contract, not how you implement it.

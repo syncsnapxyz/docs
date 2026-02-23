@@ -1,0 +1,38 @@
+---
+title: "React components (API)"
+description: "Props for SyncsnapUploadButton and SyncsnapQrCode"
+---
+
+# React components API
+
+## SyncsnapUploadButton
+
+**Import:** `import { SyncsnapUploadButton } from "@syncsnap/react";`
+
+Props extend [UseSyncsnapJobOptions](/api-reference/react-use-syncsnap-job) (e.g. `createJobUrl`, `getJobUrl`, `getWaitForCompletionUrl`, `onCompleted`). In addition:
+
+| Prop                   | Type                       | Default          | Description                                                                 |
+| ---------------------- | -------------------------- | ---------------- | --------------------------------------------------------------------------- |
+| `buttonText`           | `string`                   | `"Start upload"` | Button label.                                                               |
+| `className`            | `string`                   | —                | Wrapper className.                                                          |
+| `qrSize`               | `number`                   | `240`            | QR size in pixels.                                                          |
+| `qrBaseUrl`            | `string`                   | —                | Base URL for upload page (see [createUploadUrl](/react/create-upload-url)). |
+| `errorCorrectionLevel` | `"L" \| "M" \| "Q" \| "H"` | `"M"`            | QR error correction.                                                        |
+
+See [SyncsnapUploadButton](/react/syncsnap-upload-button).
+
+---
+
+## SyncsnapQrCode
+
+**Import:** `import { SyncsnapQrCode } from "@syncsnap/react";`
+
+| Prop                   | Type                       | Default                          | Description                |
+| ---------------------- | -------------------------- | -------------------------------- | -------------------------- |
+| `jobId`                | `string`                   | _required_                       | Job ID.                    |
+| `baseUrl`              | `string`                   | `"https://upload.syncsnap.xyz/"` | Upload page base URL.      |
+| `size`                 | `number`                   | `240`                            | QR width/height in pixels. |
+| `className`            | `string`                   | —                                | Applied to the `<img>`.    |
+| `errorCorrectionLevel` | `"L" \| "M" \| "Q" \| "H"` | `"M"`                            | QR error correction.       |
+
+See [SyncsnapQrCode](/react/syncsnap-qr-code).

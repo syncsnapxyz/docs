@@ -1,0 +1,48 @@
+---
+title: "useSyncsnapJob (API)"
+description: "Full API for the useSyncsnapJob hook"
+---
+
+# useSyncsnapJob
+
+Hook to create a SyncSnap job and wait for completion via the server's wait endpoint (server-side polling). The result (from your server's `onCompleted` or the presigned URL) is passed to `onCompleted(job, result)`.
+
+## Import
+
+```ts
+import { useSyncsnapJob } from "@syncsnap/react";
+```
+
+## Usage
+
+```ts
+const result = useSyncsnapJob(options?);
+```
+
+## Options (UseSyncsnapJobOptions)
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `createJobUrl` | `string` | `"/api/syncsnap/job"` | URL for POST to create a job. |
+| `getJobUrl` | `(jobId: string) => string` | `id => "/api/syncsnap/job/" + id` | URL for GET job status. |
+| `getWaitForCompletionUrl` | `(jobId: string) => string` | `id => getJobUrl(id) + "/wait"` | URL for the server's wait endpoint. |
+| `waitTimeoutMs` | `number` | `120000` | Timeout for wait (ms), sent as query param. |
+| `waitIntervalMs` | `number` | `2000` | Poll interval for wait (ms), sent as query param. |
+| `autoStart` | `boolean` | `false` | If true, start() is called on mount. |
+| `onJobCreated` | `(job: CreateJobResponse) => void` | — | Called when job is created. |
+| `onCompleted` | `(job: Job, result?: unknown) => void` | — | Called when job completes or fails; result is server's onCompleted return (or presigned URL). |
+| `onError` | `(error: Error) => void` | — | Called on create or wait errors. |
+
+## Return value (UseSyncsnapJobResult)
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `job` | `Job \| null` | Current job or null. |
+| `jobId` | `string \| null` | Job ID when available. |
+| `status` | `JobStatus \| null` | Current job status. |
+| `error` | `Error \| null` | Last error. |
+| `isWaiting` | `boolean` | True while the wait request is in flight. |
+| `start` | `() => Promise<void>` | Create job and call wait endpoint. |
+| `reset` | `() => void` | Abort wait and clear state. |
+
+See [useSyncsnapJob](/react/use-syncsnap-job) for usage and examples.

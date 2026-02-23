@@ -1,0 +1,38 @@
+---
+title: "Installation"
+description: "Install and configure the server SDK (syncsnap)"
+---
+
+# Server SDK installation
+
+The `syncsnap` package is the server-side SDK for SyncSnap. It talks to the SyncSnap API to create jobs, fetch job status, and get presigned upload/download URLs. Your backend uses it so the React SDK can work without ever touching the API key.
+
+## Install
+
+```bash
+npm install syncsnap
+```
+
+## Environment
+
+Set your SyncSnap API key so the SDK can authenticate. Get your key from the [SyncSnap dashboard](https://syncsnap.xyz/dashboard):
+
+```bash
+SYNCSNAP_TOKEN=your_api_key_here
+```
+
+Use `.env` or `.env.local` (and never expose this in the client). The `SyncsnapServer` constructor reads `process.env.SYNCSNAP_TOKEN`.
+
+## What the server does
+
+1. **Create job** — Your route calls `client.createJob()` and returns the job to the frontend.
+2. **Get job** — Your route receives a job ID, calls `client.getJob(id)`, and returns the job.
+3. **Wait for completion** — Your route (e.g. `/job/:id/wait`) runs `client.waitForJobCompletion(id)` until the job completes or fails, then returns the job and an optional result (e.g. from your `onCompleted` callback).
+4. **Get download URL** — For a completed job, your route calls `client.getDownloadUrl(id)` and returns the presigned URL to the frontend.
+
+The React SDK expects these as HTTP endpoints; the syncsnap package provides a [Next.js route handler](/server/nextjs-route-handler) that implements all of them.
+
+## Next steps
+
+- [SyncsnapServer](/server/syncsnap-server) — API and configuration.
+- [Next.js route handler](/server/nextjs-route-handler) — Single catch-all route for Next.js App Router.

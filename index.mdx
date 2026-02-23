@@ -1,21 +1,63 @@
 ---
 title: "Introduction"
-description: "Welcome to Syncsnap documentation"
+description: "SyncSnap lets users upload files from their phone to your web app by scanning a QR code."
 ---
 
-## Getting started
+# Seamless File upload from phone to web
 
-Syncsnap documentation helps you integrate and use Syncsnap in your applications.
+SyncSnap is the easiest way to add **QR-based file uploads** to your application. A user on your website starts a transfer, scans a QR code with their phone, uploads a file, and your app receives it—no account or app install required.
 
 <CardGroup cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get up and running in minutes
-  </Card>
-  <Card title="Development" icon="code" href="/development">
-    Preview and edit docs locally
-  </Card>
+	<Card title="Quickstart" icon="rocket" href="/quickstart">
+		Get SyncSnap running in minutes
+	</Card>
+	<Card
+		title="Next.js App Router"
+		icon="code"
+		href="/getting-started/nextjs-app-router"
+	>
+		Step-by-step integration for Next.js
+	</Card>
+</CardGroup>
+
+## How it works
+
+1. **Your web app** creates a transfer job and shows a QR code.
+2. **The user** scans the QR code with their phone and is taken to the SyncSnap upload page.
+3. **They select and upload** a file (e.g. a photo or document).
+4. **Your app** calls a wait endpoint; the server polls until the job completes and returns a result (e.g. a secure download URL or custom payload).
+
+No mobile app, no sign-in on the phone—just scan and upload.
+
+## What you need
+
+- A **SyncSnap** project and API key (get one in the [SyncSnap dashboard](https://syncsnap.xyz/dashboard)).
+- **Backend**: the `syncsnap` server SDK to create jobs and proxy job/download requests.
+- **Frontend**: the `@syncsnap/react` package for the upload button, QR code, and job polling.
+
+## Frameworks
+
+SyncSnap provides a first-party integration for **Next.js (App Router)**. The server SDK is Node-friendly and can be used with other frameworks by implementing the same API routes.
+
+<CardGroup cols={2}>
+	<Card
+		title="Next.js App Router"
+		icon="code"
+		href="/getting-started/nextjs-app-router"
+	>
+		Recommended — catch-all route and React components
+	</Card>
+	<Card
+		title="How it works"
+		icon="book-open"
+		href="/introduction/how-it-works"
+	>
+		Jobs, QR flow, and API routes
+	</Card>
 </CardGroup>
 
 ## Next steps
 
-Edit these pages in the `docs` folder and run `mint dev` to preview changes at `http://localhost:3000`.
+- [Quickstart](/quickstart) — Install packages and run a minimal example.
+- [Next.js App Router](/getting-started/nextjs-app-router) — Full setup with API route and React components.
+- [Concepts](/introduction/concepts) — Jobs, statuses, and the upload URL.

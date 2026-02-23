@@ -1,0 +1,81 @@
+---
+title: "SyncsnapServer"
+description: "Server-side client for the SyncSnap API"
+---
+
+# SyncsnapServer
+
+`SyncsnapServer` is the server-side client used to create jobs, get job status, and get presigned upload/download URLs. Use it only in Node (e.g. Next.js route handlers, API routes, or other backend code). It reads `process.env.SYNCSNAP_TOKEN` for authentication.
+
+## Construction
+
+```ts
+import { SyncsnapServer } from "syncsnap";
+
+const client = new SyncsnapServer();
+```
+
+The default base URL for the SyncSnap API is configured inside the SDK. Ensure `SYNCSNAP_TOKEN` is set (get it from the [dashboard](https://syncsnap.xyz/dashboard)).
+
+## Methods
+
+### createJob()
+
+Creates a new transfer job. Returns the job object (id, projectId, status, createdAt, updatedAt). The frontend uses the `id` to build the QR URL and poll status.
+
+```ts
+const job = await client.createJob();
+// { id, projectId, status, createdAt, updatedAt }
+```
+
+### getJob(jobId: string)
+
+Fetches the current job (status, fileName, etc.). Used by your polling endpoint.
+
+```ts
+const job = await client.getJob("job_abc123");
+```
+
+### getUploadUrl(jobId, options)
+
+Gets a presigned **upload** URL for the given job. Used when the phone needs to upload a file; the SyncSnap upload page typically calls your backend or the API. Options: `fileName` (required), optional `expirationMinutes`.
+
+```ts
+const { url, fileName, expiration } = await client.getUploadUrl("job_abc123", {
+  fileName: "photo.jpg",
+  expirationMinutes: 15,
+});
+```
+
+### getDownloadUrl(jobId, options?)
+
+Gets a presigned **download** URL for a completed job. Your backend calls this and returns the URL to the frontend. Options: optional `expirationMinutes`.
+
+```ts
+const { url, fileName, expiration } = await client.getDownloadUrl("job_abc123", {
+  expirationMinutes: 15,
+});
+```
+
+### waitForJobCompletion(jobId, options?)
+
+Polls the job until status is `completed` or `failed`, or until timeout/abort. Optional: `intervalMs`, `timeoutMs`, `onPoll(job)`, `signal` (AbortSignal).
+
+```ts
+const job = await client.waitForJobCompletion("job_abc123", {
+  intervalMs: 2000,
+  timeoutMs: 120000,
+});
+if (job.status === "completed") {
+  const { url } = await client.getDownloadUrl(job.id);
+  // ...
+}
+```
+
+## Errors
+
+If the SyncSnap API returns an error or a non-2xx status, the SDK throws an `Error` with a message (e.g. from the API body or a generic "Syncsnap request failed (status)"). Handle these in your route and return an appropriate HTTP response.
+
+## API reference
+
+Full types: [SyncsnapServer (API)](/api-reference/server-syncsnap-server).

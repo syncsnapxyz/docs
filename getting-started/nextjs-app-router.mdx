@@ -1,0 +1,138 @@
+---
+title: "Next.js App Router"
+description: "Integrate SyncSnap in a Next.js App Router application"
+---
+
+# Next.js App Router
+
+This guide walks through integrating SyncSnap in a Next.js app using the App Router: API route, React components, and styling.
+
+## 1. Install dependencies
+
+```bash
+npm install @syncsnap/react syncsnap
+```
+
+Ensure you have React and Tailwind (peer dependencies for `@syncsnap/react`):
+
+```bash
+npm install react tailwindcss
+```
+
+## 2. Configure environment
+
+Create or update `.env.local` with your SyncSnap API key (get it from the [dashboard](https://syncsnap.xyz/dashboard)):
+
+```bash
+SYNCSNAP_TOKEN=your_syncsnap_api_key
+```
+
+The `syncsnap` server SDK reads this to authenticate with the SyncSnap API. Do not expose it to the client.
+
+## 3. Create the SyncSnap API route
+
+The React SDK expects a backend that can create jobs, return job status, and return presigned download URLs. The `syncsnap` package provides a Next.js handler that implements all of this with one catch-all route.
+
+Create the file:
+
+**`app/api/syncsnap/[...syncsnap]/route.ts`**
+
+```ts
+import { SyncsnapServer } from "syncsnap";
+import { createRouteHandler } from "syncsnap/next";
+
+const client = new SyncsnapServer();
+
+export const { GET, POST } = createRouteHandler({
+  client,
+  onCompleted: async (job, presigned) => {
+    // Optional. Return value is sent to the client as onCompleted(job, result).
+    return presigned ? { downloadUrl: presigned.url, fileName: presigned.fileName } : undefined;
+  },
+});
+```
+
+This exports:
+
+- **POST** for `POST /api/syncsnap/job` (create job)
+- **GET** for:
+  - `GET /api/syncsnap/job/:id` (get job)
+  - `GET /api/syncsnap/job/:id/wait` (server waits until job completes; returns `{ job, result? }`; query: `timeoutMs`, `intervalMs`)
+  - `GET /api/syncsnap/job/:id/download` (get presigned download URL; optional `?expiration=15`)
+
+Path segments are resolved from the catch-all `[...syncsnap]` (e.g. `job`, `jobId`, `download`).
+
+## 4. Use the React components
+
+In any **client** page or component, use the upload button and optional callbacks:
+
+```tsx
+"use client";
+
+import { SyncsnapUploadButton } from "@syncsnap/react";
+
+export default function UploadPage() {
+  return (
+    <SyncsnapUploadButton
+      buttonText="Generate QR"
+      qrBaseUrl="https://upload.syncsnap.xyz"
+      waitIntervalMs={5000}
+      onJobCreated={(job) => console.log("Job created:", job.id)}
+      onCompleted={(job, result) => {
+        // result is whatever your server onCompleted returned
+        if (result && typeof result === "object" && "downloadUrl" in result) {
+          console.log("Download:", (result as { downloadUrl: string }).downloadUrl);
+        }
+      }}
+    />
+  );
+}
+```
+
+The button opens a dialog with a QR code. Users scan it with their phone to upload; your app polls until the job is completed or failed.
+
+## 5. Add styles
+
+Import the SDK theme so the button and dialog look correct. In your root layout or global CSS (e.g. `app/globals.css`):
+
+**Tailwind v4:**
+
+```css
+@import "tailwindcss";
+@import "@syncsnap/react/theme";
+```
+
+**Tailwind v3:** Ensure Tailwind can see the SDK’s class names (e.g. via `content` including `node_modules/@syncsnap/react`), then:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "@syncsnap/react/theme";
+```
+
+See [Styling](/guides/styling) for more options (e.g. shadcn, custom theme).
+
+## 6. Custom API base path
+
+If you mount the SyncSnap API under a different path, pass the URLs into the hook used by the button (or into `useSyncsnapJob` directly):
+
+```tsx
+<SyncsnapUploadButton
+  createJobUrl="/api/my-syncsnap/job"
+  getJobUrl={(id) => `/api/my-syncsnap/job/${id}`}
+  getWaitForCompletionUrl={(id) => `/api/my-syncsnap/job/${id}/wait`}
+  buttonText="Scan to upload"
+/>
+```
+
+The default is `createJobUrl: "/api/syncsnap/job"`, `getJobUrl(id) => "/api/syncsnap/job/" + id`, and `getWaitForCompletionUrl(id) => getJobUrl(id) + "/wait"`.
+
+## Summary
+
+- Install `@syncsnap/react` and `syncsnap`, set `SYNCSNAP_TOKEN`.
+- Add one catch-all route with `createRouteHandler({ client })`.
+- Use `SyncsnapUploadButton` in a client component and import the SDK theme.
+- Optionally customize `createJobUrl`, `getJobUrl`, `getWaitForCompletionUrl`, and `qrBaseUrl`.
+
+Next: [SyncsnapUploadButton](/react/syncsnap-upload-button), [useSyncsnapJob](/react/use-syncsnap-job), or [SyncsnapServer](/server/syncsnap-server).

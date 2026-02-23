@@ -1,0 +1,58 @@
+---
+title: "Installation"
+description: "Install and configure the React SDK (@syncsnap/react)"
+---
+
+# React SDK installation
+
+The `@syncsnap/react` package provides React components and hooks for SyncSnap: upload button, QR code, and job polling.
+
+## Install
+
+```bash
+npm install @syncsnap/react
+```
+
+## Peer dependencies
+
+- **React** `^18.0.0`
+- **Tailwind CSS** `^3.0.0` or `^4.0.0` (for component styles)
+
+Install them if your project doesn’t already have them:
+
+```bash
+npm install react tailwindcss
+```
+
+## Backend requirement
+
+The React SDK talks to **your** backend, not directly to SyncSnap. You must expose:
+
+- `POST /api/syncsnap/job` — create job
+- `GET /api/syncsnap/job/:id` — get job
+- `GET /api/syncsnap/job/:id/wait` — server waits until job completes; returns `{ job, result? }`
+- `GET /api/syncsnap/job/:id/download` — get presigned download URL (optional)
+
+Use the [Server SDK](/server/installation) (e.g. with [Next.js route handler](/server/nextjs-route-handler)) to implement these.
+
+## Styling
+
+Components use Tailwind and the SDK theme. Add to your global CSS:
+
+```css
+@import "tailwindcss";
+@import "@syncsnap/react/theme";
+```
+
+See [Styling](/guides/styling) for Tailwind v3, shadcn, or custom setup.
+
+## What’s included
+
+| Export | Purpose |
+|--------|--------|
+| `SyncsnapUploadButton` | Button + dialog with QR code; uses `useSyncsnapJob` internally |
+| `SyncsnapQrCode` | QR code only (for custom UI) |
+| `useSyncsnapJob` | Hook to create job, poll status, and get download URL |
+| `createUploadUrl` | Build the URL to encode in the QR code |
+
+Next: [SyncsnapUploadButton](/react/syncsnap-upload-button) or [useSyncsnapJob](/react/use-syncsnap-job).

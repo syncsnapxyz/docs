@@ -1,0 +1,86 @@
+---
+title: "SyncsnapServer (API)"
+description: "Server SDK class and method reference"
+---
+
+# SyncsnapServer API
+
+**Import:** `import { SyncsnapServer } from "syncsnap";`
+
+## Constructor
+
+```ts
+const client = new SyncsnapServer();
+```
+
+Uses `process.env.SYNCSNAP_TOKEN` and the default SyncSnap API base URL.
+
+## Methods
+
+### createJob()
+
+```ts
+createJob(): Promise<CreateJobResponse>
+```
+
+Creates a new job. Returns `{ id, projectId, status, createdAt, updatedAt }`.
+
+---
+
+### getJob(jobId)
+
+```ts
+getJob(jobId: string): Promise<Job>
+```
+
+Returns the current job for the given ID.
+
+---
+
+### getUploadUrl(jobId, options)
+
+```ts
+getUploadUrl(
+  jobId: string,
+  options: { fileName: string; expirationMinutes?: number }
+): Promise<PresignedUrlResponse>
+```
+
+Returns a presigned upload URL for the job.
+
+---
+
+### getDownloadUrl(jobId, options?)
+
+```ts
+getDownloadUrl(
+  jobId: string,
+  options?: { expirationMinutes?: number }
+): Promise<PresignedUrlResponse>
+```
+
+Returns a presigned download URL for a completed job.
+
+---
+
+### waitForJobCompletion(jobId, options?)
+
+```ts
+waitForJobCompletion(
+  jobId: string,
+  options?: WaitForJobOptions
+): Promise<Job>
+```
+
+Polls until status is `completed` or `failed`, or until timeout/abort.
+
+**WaitForJobOptions:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `intervalMs` | `number` | `2000` | Poll interval in ms. |
+| `timeoutMs` | `number` | `120000` | Timeout in ms. |
+| `onPoll` | `(job: Job) => void` | — | Called on each poll. |
+| `signal` | `AbortSignal` | — | Abort to stop polling. |
+
+See [SyncsnapServer](/server/syncsnap-server) for usage.

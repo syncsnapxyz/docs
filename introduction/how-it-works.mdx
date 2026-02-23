@@ -1,0 +1,56 @@
+---
+title: "How it works"
+description: "End-to-end flow from job creation to file download"
+---
+
+# How SyncSnap works
+
+This page walks through the flow from your web app to the uploaded file.
+
+## Overview
+
+<Steps>
+  <Step title="Create a job">
+    Your backend calls the [SyncSnap API](https://syncsnap.xyz) (via the `syncsnap` server SDK) to create a **job**. Each job has a unique ID and starts in `pending` status.
+  </Step>
+  <Step title="Show the QR code">
+    Your frontend receives the job ID and displays a QR code. The QR code encodes a URL like `https://upload.syncsnap.xyz/?job_id=<jobId>`. Use `createUploadUrl(jobId, { baseUrl })` from `@syncsnap/react` to build this URL.
+  </Step>
+  <Step title="User scans and uploads">
+    The user scans the QR code with their phone. Their browser opens the SyncSnap upload page. They select a file and upload it. The SyncSnap service associates the file with the job and sets the job status to `completed` (or `failed` on error).
+  </Step>
+  <Step title="Wait for completion">
+    Your frontend calls the **wait** endpoint (e.g. `GET /api/syncsnap/job/:id/wait`). Your backend runs server-side polling until the job is `completed` or `failed`, then returns the final job and a **result** (e.g. presigned download URL or custom payload from your `onCompleted` callback). The client receives this in `useSyncsnapJob`'s `onCompleted(job, result)`.
+  </Step>
+</Steps>
+
+## API routes your backend must expose
+
+The React SDK expects your app to expose these endpoints (the `syncsnap` Next.js helper implements them via a single catch-all route):
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/api/syncsnap/job` | Create a new job. Returns `{ id, projectId, status, createdAt, updatedAt }`. |
+| `GET`  | `/api/syncsnap/job/:id` | Get job status. Returns the full job object. |
+| `GET`  | `/api/syncsnap/job/:id/wait` | Server-side wait: backend polls until job completes or fails, then returns `{ job, result? }`. Query: `timeoutMs`, `intervalMs`. The `result` is whatever your server's `onCompleted` callback returns (or the presigned download URL when no callback). |
+| `GET`  | `/api/syncsnap/job/:id/download` | Get a presigned download URL for a completed job. Optional query: `?expiration=15` (minutes). Returns `{ url, fileName, expiration }` and optionally `completedPayload` when `onCompleted` is configured. |
+
+The **base path** (`/api/syncsnap`) is configurable on the client via `createJobUrl`, `getJobUrl`, and `getWaitForCompletionUrl` in `useSyncsnapJob`.
+
+## Job statuses
+
+| Status | Meaning |
+|--------|--------|
+| `pending` | Job created; waiting for the user to open the upload page. |
+| `in_progress` | User has started or is in the middle of uploading. |
+| `completed` | File uploaded successfully. You can fetch the presigned download URL. |
+| `failed` | Upload failed or was abandoned. |
+
+Your frontend typically calls the wait endpoint once; the server polls the job and returns when it's done, so the client doesn't poll itself.
+
+## Security
+
+- **API key**: Your server uses a SyncSnap API key (e.g. `SYNCSNAP_TOKEN`) to create jobs and get download URLs. Never expose this key to the browser.
+- **Presigned URLs**: Download URLs are short-lived. Your backend requests them from SyncSnap and forwards them to your frontend so the client never talks to SyncSnap directly with the API key.
+
+Next: [Concepts](/introduction/concepts) for more detail on jobs and the upload URL, or [Next.js App Router](/getting-started/nextjs-app-router) to implement this in your app.

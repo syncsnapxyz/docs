@@ -1,30 +1,114 @@
 ---
 title: "Quickstart"
-description: "Start building with Syncsnap in minutes"
+description: "Get a minimal SyncSnap flow running with the Next.js App Router and React SDK."
 ---
 
-## Get started in three steps
+## Prerequisites
 
-### Step 1: Set up your local environment
+- Node.js 18+
+- A SyncSnap project and API key from the [dashboard](https://syncsnap.xyz/dashboard) (or your backend that creates jobs and returns download URLs)
+- Next.js app using the App Router
 
-1. Install the Mintlify CLI: `npm i -g mint`
-2. Navigate to the `docs` directory and run: `mint dev`
-3. Open `http://localhost:3000` to see your docs live!
+## Step 1: Install packages
 
-Your preview updates automatically as you edit files.
+```bash
+npm install @syncsnap/react syncsnap
+```
 
-### Step 2: Customize your docs
+Peer dependencies for the React components (Tailwind and React):
 
-1. Open `docs.json` in your editor.
-2. Change the `"name"` and `"description"` to match your project.
-3. Update the `"colors"` to match your brand.
-4. Save and see your changes at `http://localhost:3000`.
+```bash
+npm install react tailwindcss
+```
 
-### Step 3: Deploy (optional)
+## Step 2: Environment variable
 
-Connect your repo to [Mintlify](https://mintlify.com/start) and install the GitHub app to deploy automatically on push.
+Your server needs the SyncSnap API key. In `.env.local`:
 
-## Next steps
+```bash
+SYNCSNAP_TOKEN=your_api_key_here
+```
 
-- Add more pages as `.mdx` files and reference them in `docs.json` under `navigation.tabs[].groups[].pages`.
-- Use [Mintlify components](https://mintlify.com/docs/components) in your MDX for cards, code blocks, and more.
+Never expose this key to the browser; only the server SDK should use it.
+
+## Step 3: API route
+
+Create the SyncSnap API route so the frontend can create jobs and wait for completion (and optionally get download URLs). Create this file:
+
+**`app/api/syncsnap/[...syncsnap]/route.ts`**
+
+```ts
+import { SyncsnapServer } from "syncsnap";
+import { createRouteHandler } from "syncsnap/next";
+
+const client = new SyncsnapServer();
+
+export const { GET, POST } = createRouteHandler({
+  client,
+  onCompleted: async (job, presigned) => {
+    // Optional: run when job completes. Return value is sent to the client as onCompleted(job, result).
+    return presigned ? { downloadUrl: presigned.url, fileName: presigned.fileName } : undefined;
+  },
+});
+```
+
+This single catch-all route handles:
+
+- `POST /api/syncsnap/job` — create job
+- `GET /api/syncsnap/job/:id` — get job
+- `GET /api/syncsnap/job/:id/wait` — server waits until job completes, then returns `{ job, result? }` (result is from your `onCompleted` callback or the presigned URL)
+- `GET /api/syncsnap/job/:id/download` — get presigned download URL
+
+## Step 4: Add the upload button
+
+In any client component:
+
+```tsx
+"use client";
+
+import { SyncsnapUploadButton } from "@syncsnap/react";
+
+export default function Page() {
+	return (
+		<SyncsnapUploadButton
+			buttonText="Scan to upload"
+			onCompleted={(job, result) => {
+				// result is whatever your server onCompleted returned (e.g. { downloadUrl, fileName })
+				if (result && typeof result === "object" && "downloadUrl" in result)
+					console.log("Download URL:", (result as { downloadUrl: string }).downloadUrl);
+			}}
+		/>
+	);
+}
+```
+
+## Step 5: Styles (Tailwind)
+
+The button and dialog use Tailwind and the SDK theme. In your main CSS (e.g. `app/globals.css`):
+
+```css
+@import "tailwindcss";
+@import "@syncsnap/react/theme";
+```
+
+If you use Tailwind v3 or a different setup, see [Styling](/guides/styling).
+
+## Step 6: Run and test
+
+1. Start the dev server: `npm run dev`
+2. Open the page and click **Scan to upload**.
+3. A dialog opens with a QR code. Scan it with your phone and upload a file.
+4. When the job completes, `onCompleted` runs and you can use the presigned download URL.
+
+## Optional: QR code base URL
+
+If the default upload host is wrong (e.g. local or staging), set where the QR code should point:
+
+```tsx
+<SyncsnapUploadButton
+	buttonText="Scan to upload"
+	qrBaseUrl="https://upload.staging.syncsnap.xyz"
+/>
+```
+
+Next: [Next.js App Router](/getting-started/nextjs-app-router) for a fuller walkthrough, or [React SDK](/react/syncsnap-upload-button) and [Server SDK](/server/syncsnap-server) for all options.

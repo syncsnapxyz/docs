@@ -1,0 +1,108 @@
+---
+title: "useSyncsnapJob"
+description: "Hook to create a job and wait for completion (server-side wait)"
+---
+
+# useSyncsnapJob
+
+`useSyncsnapJob` creates a transfer job, then calls your backend's **wait** endpoint. The server polls until the job completes or fails and returns the final job plus a **result** (e.g. presigned download URL or a custom payload from your server's `onCompleted` callback). The hook passes that result to your `onCompleted(job, result)`. It powers `SyncsnapUploadButton` and can be used on its own for custom UIs.
+
+## Basic usage
+
+```tsx
+const { jobId, status, start, isWaiting, error, onCompleted } = useSyncsnapJob({
+  onCompleted: (job, result) => {
+    // result is whatever your server onCompleted returned (or the presigned URL when no callback)
+    if (result && typeof result === "object" && "downloadUrl" in result)
+      console.log("Download:", (result as { downloadUrl: string }).downloadUrl);
+  },
+});
+
+return (
+  <button onClick={() => start()} disabled={isWaiting}>
+    {isWaiting ? "Waiting for upload..." : "Start transfer"}
+  </button>
+);
+```
+
+- Call **start()** to create a job and call the wait endpoint (server does the polling).
+- **jobId** is set once the job is created; use it with [SyncsnapQrCode](/react/syncsnap-qr-code) or [createUploadUrl](/react/create-upload-url).
+- **status** is the current job status; **isWaiting** is true while the wait request is in flight.
+- **onCompleted(job, result)** runs when the job finishes; **result** is what your server's `onCompleted` returned, or the presigned download URL when no callback is set.
+
+## Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `createJobUrl` | `string` | `"/api/syncsnap/job"` | URL for POST to create a job. |
+| `getJobUrl` | `(jobId: string) => string` | `id => "/api/syncsnap/job/" + id` | URL for GET job status. |
+| `getWaitForCompletionUrl` | `(jobId: string) => string` | `id => getJobUrl(id) + "/wait"` | URL for the server's wait endpoint (server polls until job completes). |
+| `waitTimeoutMs` | `number` | `120000` | Timeout passed to the wait endpoint (ms). |
+| `waitIntervalMs` | `number` | `2000` | Poll interval passed to the wait endpoint (ms). |
+| `autoStart` | `boolean` | `false` | If true, call start() once on mount. |
+| `onJobCreated` | `(job: CreateJobResponse) => void` | — | Called when the job is created. |
+| `onCompleted` | `(job: Job, result?: unknown) => void` | — | Called when job completes or fails; result is server's onCompleted return (or presigned URL). |
+| `onError` | `(error: Error) => void` | — | Called on create or wait errors. |
+
+## Return value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `job` | `Job \| null` | Current job object, or null before create / after completion. |
+| `jobId` | `string \| null` | Job ID when available. |
+| `status` | `JobStatus \| null` | Current status. |
+| `error` | `Error \| null` | Last error from create or wait. |
+| `isWaiting` | `boolean` | True while the wait request is in flight. |
+| `start` | `() => Promise<void>` | Create job and call wait endpoint. |
+| `reset` | `() => void` | Abort wait, clear state, reset error. |
+
+## Custom URLs
+
+Use a different API base path:
+
+```tsx
+useSyncsnapJob({
+  createJobUrl: "/api/transfer/job",
+  getJobUrl: (id) => `/api/transfer/job/${id}`,
+  getWaitForCompletionUrl: (id) => `/api/transfer/job/${id}/wait`,
+  onCompleted: (job, result) => { /* ... */ },
+});
+```
+
+## Wait timeout and interval
+
+The client sends `timeoutMs` and `intervalMs` as query params to the wait endpoint. Override the defaults:
+
+```tsx
+useSyncsnapJob({
+  waitTimeoutMs: 60000,
+  waitIntervalMs: 3000,
+  onCompleted: (job, result) => { /* ... */ },
+});
+```
+
+## Auto-start
+
+Create and call the wait endpoint as soon as the component mounts:
+
+```tsx
+const { jobId, status } = useSyncsnapJob({ autoStart: true });
+```
+
+Use with care (e.g. dedicated page) so you don't create jobs unnecessarily.
+
+## Reset
+
+Call **reset()** to abort the wait and clear state (e.g. when the user closes the dialog):
+
+```tsx
+const { start, reset } = useSyncsnapJob();
+
+const handleClose = () => {
+  reset();
+};
+```
+
+## API reference
+
+Full types: [useSyncsnapJob (API)](/api-reference/react-use-syncsnap-job).

@@ -1,0 +1,44 @@
+---
+title: "Concepts"
+description: "Jobs, upload URLs, wait endpoint, and download URLs"
+---
+
+# Core concepts
+
+## Jobs
+
+A **job** represents a single transfer session: one QR code, one upload from the user’s device. Your backend creates a job via the SyncSnap API (using the `syncsnap` server SDK). The API returns a job object with:
+
+- `id` — Use this to build the QR URL and to call the wait endpoint.
+- `projectId` — Your SyncSnap project.
+- `status` — One of `pending`, `in_progress`, `completed`, `failed`.
+- `fileName` — Set when the upload completes (if provided by the service).
+- `createdAt`, `updatedAt` — Timestamps.
+
+Jobs are **one-time**: one job corresponds to one upload. For another file, create a new job and show a new QR code.
+
+## Upload URL (QR code target)
+
+The URL encoded in the QR code tells the user’s phone **where** to upload. SyncSnap’s upload page lives at a host like `https://upload.syncsnap.xyz/`. The only required query parameter is the job ID:
+
+- **Default**: `https://upload.syncsnap.xyz/?job_id=<jobId>`
+- **Custom base**: You can pass a different `baseUrl` (e.g. for staging or a custom domain) into `createUploadUrl(jobId, { baseUrl })` in `@syncsnap/react`.
+
+The React component `SyncsnapQrCode` uses `createUploadUrl` internally. If you build your own QR UI, use `createUploadUrl` so the URL stays correct.
+
+## Wait for completion
+
+The web app does not get a push when the upload finishes. It calls a **wait** endpoint (e.g. `GET /api/syncsnap/job/:id/wait`) once. Your backend then polls the SyncSnap API until the job is `completed` or `failed`, and returns the final job plus a **result** (e.g. presigned download URL or a custom payload from your server's `onCompleted` callback). The `useSyncsnapJob` hook calls this wait endpoint and passes the result to your `onCompleted(job, result)`.
+
+## Download URL
+
+After a job is `completed`, your backend can get a **presigned download URL** from the SyncSnap API. In the default flow, the wait handler does this and returns it (or your custom payload) as `result`. You can also expose `GET /api/syncsnap/job/:id/download` so the client can request a fresh URL later. The URL is time-limited; you can pass an expiration in minutes. The `syncsnap` server SDK’s `getDownloadUrl` and the Next.js download handler support this.
+
+## Summary
+
+- **Job** = one transfer; create one per QR code.
+- **Upload URL** = SyncSnap host + `?job_id=<jobId>` (use `createUploadUrl`).
+- **Wait** = client calls one wait endpoint; server polls until done and returns job + result.
+- **Download URL** = backend gets a presigned URL from SyncSnap; returned to the client via the wait result or the download endpoint.
+
+Next: [Quickstart](/quickstart) or [Next.js App Router](/getting-started/nextjs-app-router).

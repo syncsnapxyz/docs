@@ -1,0 +1,55 @@
+---
+title: "createUploadUrl"
+description: "Build the URL to show in the QR code for the upload page"
+---
+
+# createUploadUrl
+
+`createUploadUrl` returns the full URL that the user’s phone should open to upload a file for a given job. This is the URL you encode in the QR code (and the one [SyncsnapQrCode](/react/syncsnap-qr-code) uses internally).
+
+## Usage
+
+```ts
+import { createUploadUrl } from "@syncsnap/react";
+
+const url = createUploadUrl(jobId);
+// "https://upload.syncsnap.xyz/?job_id=abc123"
+```
+
+With a custom base URL (e.g. staging or custom domain):
+
+```ts
+const url = createUploadUrl(jobId, {
+  baseUrl: "https://upload.staging.syncsnap.xyz/",
+});
+```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `jobId` | `string` | *required* | The SyncSnap job ID. |
+| `options.baseUrl` | `string` | `"https://upload.syncsnap.xyz/"` | Base URL of the SyncSnap upload page (no query). |
+
+## Return value
+
+A string URL: `baseUrl` with a `job_id` query parameter set to `jobId`. The upload page reads this to know which job to attach the file to.
+
+## When to use
+
+- **SyncsnapQrCode** and **SyncsnapUploadButton** use this internally; you don’t need to call it if you use those components.
+- Use **createUploadUrl** when you generate the QR code yourself (e.g. another QR library or native app) or need the URL for sharing or deep links.
+
+## Example: custom QR library
+
+```tsx
+import { createUploadUrl } from "@syncsnap/react";
+import MyQRComponent from "my-qr-library";
+
+function CustomQR({ jobId }: { jobId: string }) {
+  const url = createUploadUrl(jobId, {
+    baseUrl: "https://upload.syncsnap.xyz/",
+  });
+  return <MyQRComponent value={url} size={240} />;
+}
+```

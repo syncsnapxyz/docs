@@ -1,0 +1,77 @@
+---
+title: "SyncsnapUploadButton"
+description: "Button and dialog that show a QR code for phone uploads"
+---
+
+# SyncsnapUploadButton
+
+`SyncsnapUploadButton` is an all-in-one component: a button that opens a dialog with a QR code. When the user clicks the button, a job is created and the QR code is shown; the hook then calls your backend's **wait** endpoint (the server polls until the job completes or fails). When done, your `onCompleted(job, result)` runs with the server's result.
+
+## Basic usage
+
+```tsx
+import { SyncsnapUploadButton } from "@syncsnap/react";
+
+<SyncsnapUploadButton buttonText="Scan to upload" />
+```
+
+Clicking the button creates a job, opens the dialog, and shows the QR code. When the user uploads from their phone, the server waits for completion and returns a result; your `onCompleted(job, result)` receives it (e.g. a custom payload from your server's `onCompleted` callback or the presigned download URL).
+
+## Props
+
+All [useSyncsnapJob](/react/use-syncsnap-job) options are supported (e.g. `createJobUrl`, `getJobUrl`, `getWaitForCompletionUrl`, `waitTimeoutMs`, `waitIntervalMs`, `onCompleted`). In addition:
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `buttonText` | `string` | `"Start upload"` | Label of the trigger button. |
+| `className` | `string` | — | Applied to the wrapper div. |
+| `qrSize` | `number` | `240` | QR code size in pixels. |
+| `qrBaseUrl` | `string` | — | Base URL for the upload page (see [createUploadUrl](/react/create-upload-url)). Overrides default `https://upload.syncsnap.xyz/`. |
+| `errorCorrectionLevel` | `"L" \| "M" \| "Q" \| "H"` | `"M"` | QR code error correction level. |
+
+## Callbacks
+
+Pass the same callbacks as [useSyncsnapJob](/react/use-syncsnap-job):
+
+```tsx
+<SyncsnapUploadButton
+  buttonText="Generate QR"
+  onJobCreated={(job) => console.log("Job created:", job.id)}
+  onCompleted={(job, result) => {
+    // result is whatever your server onCompleted returned
+    if (result && typeof result === "object" && "downloadUrl" in result) {
+      window.open((result as { downloadUrl: string }).downloadUrl);
+    }
+  }}
+  onError={(err) => console.error(err)}
+/>
+```
+
+## Custom API paths
+
+If your API is not under `/api/syncsnap/job`:
+
+```tsx
+<SyncsnapUploadButton
+  createJobUrl="/api/transfer/job"
+  getJobUrl={(id) => `/api/transfer/job/${id}`}
+  getWaitForCompletionUrl={(id) => `/api/transfer/job/${id}/wait`}
+  buttonText="Scan to upload"
+/>
+```
+
+## Wait timeout and interval
+
+Defaults: server waits up to 2 minutes, polling every 2 seconds. Override as needed:
+
+```tsx
+<SyncsnapUploadButton
+  waitTimeoutMs={60000}
+  waitIntervalMs={3000}
+  buttonText="Scan to upload"
+/>
+```
+
+## Building your own UI
+
+If you prefer not to use the button + dialog, use [SyncsnapQrCode](/react/syncsnap-qr-code) and [useSyncsnapJob](/react/use-syncsnap-job) to create jobs and show the QR code in your own layout.

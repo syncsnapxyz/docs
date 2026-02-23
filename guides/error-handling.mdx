@@ -1,0 +1,78 @@
+---
+title: "Error handling"
+description: "Handle errors from job creation and wait endpoint"
+---
+
+# Error handling
+
+SyncSnap flows can fail at several points: creating the job or while the server is waiting for completion (wait endpoint). The React and server SDKs surface these as thrown errors or via the `onError` callback.
+
+## React SDK: onError and error state
+
+`useSyncsnapJob` (and therefore `SyncsnapUploadButton`) exposes:
+
+- **error** — `Error | null`; set when create or wait fails.
+- **onError** — optional callback called with the same `Error`.
+
+Use both to show a message and/or log:
+
+```tsx
+<SyncsnapUploadButton
+  onError={(err) => {
+    console.error("SyncSnap error:", err);
+    toast.error(err.message);
+  }}
+/>
+```
+
+Or with the hook:
+
+```tsx
+const { error, start } = useSyncsnapJob({
+  onError: (err) => reportToAnalytics(err),
+});
+
+return (
+  <>
+    {error && <p role="alert">{error.message}</p>}
+    <button onClick={() => start()}>Start</button>
+  </>
+);
+```
+
+## Common error cases
+
+- **Job creation fails** — Network issue, invalid API key, or SyncSnap API error. User sees the error; they can retry (e.g. call `start()` again).
+- **Wait fails** — Network or backend error while the wait request is in flight. Hook sets `error` and stops; call `reset()` then `start()` to retry.
+- **Timeout** — Job not completed within `waitTimeoutMs`. The server may return 408; the hook sets `error`. User can start a new transfer.
+- **Abort** — If the user closes the dialog or you call `reset()`, the wait request is aborted and `onError` is not called.
+
+## Server SDK
+
+The `syncsnap` server SDK throws when the SyncSnap API returns a non-2xx or an error body. Catch in your route and return an appropriate HTTP response:
+
+```ts
+try {
+  const job = await client.createJob();
+  return Response.json(job);
+} catch (err) {
+  const message = err instanceof Error ? err.message : "Create job failed";
+  return Response.json({ error: message }, { status: 502 });
+}
+```
+
+Do the same for `getJob`, the wait handler, and `getDownloadUrl` so the frontend receives a consistent error shape (e.g. `{ error: string }`).
+
+## User-friendly messages
+
+Map known error messages to user-facing copy if you want:
+
+```tsx
+function getErrorMessage(err: Error): string {
+  if (err.message.includes("timed out")) return "Upload is taking too long. Please try again.";
+  if (err.message.includes("Failed to create job")) return "Could not start transfer. Check your connection.";
+  return err.message;
+}
+```
+
+Then display `getErrorMessage(error)` in the UI.

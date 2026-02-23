@@ -1,0 +1,77 @@
+---
+title: "Styling"
+description: "Tailwind and theme setup for @syncsnap/react components"
+---
+
+# Styling the React SDK
+
+Components in `@syncsnap/react` use **Tailwind CSS** and **CSS variables** for the theme. You can use the built-in theme or adapt it to your app.
+
+## Option 1: Minimal setup (recommended)
+
+If your app uses **Tailwind v4**, add these imports in your main CSS (e.g. `app/globals.css`):
+
+```css
+@import "tailwindcss";
+@import "@syncsnap/react/theme";
+```
+
+The theme file includes an `@source` so Tailwind scans the SDK for class names. No extra config or copy-paste needed.
+
+If you use **shadcn** or **tw-animate**, you may need:
+
+```css
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@syncsnap/react/theme";
+```
+
+Install peer deps if needed:
+
+```bash
+npm install tailwindcss tw-animate-css shadcn
+```
+
+## Option 2: Tailwind v3
+
+Ensure Tailwind can see the SDK’s class names. In `tailwind.config.js`:
+
+```js
+content: [
+  "./app/**/*.{js,ts,jsx,tsx}",
+  "./components/**/*.{js,ts,jsx,tsx}",
+  "./node_modules/@syncsnap/react/**/*.{js,ts,jsx,tsx}",
+],
+```
+
+Then in your global CSS:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "@syncsnap/react/theme";
+```
+
+## Option 3: Copy the full stylesheet
+
+You can copy the SDK’s full styles (e.g. from the example app in this repo) into your project and import that instead. Use this if you want a single self-contained file or need to tweak the theme heavily.
+
+## Requirements
+
+- **Tailwind** (v3 or v4) so utility classes used by the components are generated.
+- **Content scanning** of the SDK so classes like `bg-background`, `rounded-xl`, etc. are included (via `@source` in v4 or `content` in v3 config).
+
+## Customizing the button
+
+You can pass a `className` to `SyncsnapUploadButton` to style the wrapper or rely on your own button:
+
+```tsx
+<SyncsnapUploadButton
+  className="my-4"
+  buttonText="Scan to upload"
+/>
+```
+
+For full control, use [useSyncsnapJob](/react/use-syncsnap-job) and [SyncsnapQrCode](/react/syncsnap-qr-code) and render your own button and layout.

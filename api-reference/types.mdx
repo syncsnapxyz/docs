@@ -1,0 +1,84 @@
+---
+title: "Types"
+description: "Shared types for jobs, responses, and options"
+---
+
+# Types
+
+Types are shared between `@syncsnap/react` and `syncsnap` where applicable. Import from the package you use.
+
+## JobStatus
+
+```ts
+type JobStatus = "pending" | "in_progress" | "completed" | "failed";
+```
+
+## Job
+
+```ts
+interface Job {
+  id: string;
+  projectId: string;
+  status: JobStatus;
+  fileName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+## CreateJobResponse
+
+Returned when creating a job (POST job).
+
+```ts
+interface CreateJobResponse {
+  id: string;
+  projectId: string;
+  status: JobStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+## PresignedUrlResponse
+
+Returned when requesting a presigned upload or download URL.
+
+```ts
+interface PresignedUrlResponse {
+  url: string;
+  fileName: string;
+  expiration: string;
+}
+```
+
+## CompletedJobResponse (React)
+
+When the server is configured with `onCompleted`, the download response can include a custom payload.
+
+```ts
+interface CompletedJobResponse<T = unknown> extends PresignedUrlResponse {
+  completedPayload?: T;
+}
+```
+
+## UseSyncsnapJobOptions (React)
+
+Options for [useSyncsnapJob](/react/use-syncsnap-job). See [useSyncsnapJob API](/api-reference/react-use-syncsnap-job).
+
+## UseSyncsnapJobResult (React)
+
+Return value of [useSyncsnapJob](/react/use-syncsnap-job).
+
+## WaitForJobOptions (Server)
+
+Options for `SyncsnapServer.waitForJobCompletion`:
+
+```ts
+interface WaitForJobOptions {
+  intervalMs?: number;
+  timeoutMs?: number;
+  onPoll?: (job: Job) => void;
+  signal?: AbortSignal;
+}
+```

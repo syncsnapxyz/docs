@@ -1,40 +1,89 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Syncsnap Docs",
-  "description": "Documentation for Syncsnap",
-  "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
-  },
-  "favicon": "/favicon.svg",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "navbar": {
-    "links": [],
-    "primary": {
-      "type": "button",
-      "label": "GitHub",
-      "href": "https://github.com"
-    }
-  },
-  "footer": {
-    "socials": {}
-  }
+	"$schema": "https://mintlify.com/docs.json",
+	"theme": "mint",
+	"name": "SyncSnap Docs",
+	"description": "Documentation for SyncSnap — QR-based file transfer from phone to web",
+	"colors": {
+		"primary": "#16A34A",
+		"light": "#07C983",
+		"dark": "#15803D"
+	},
+	"favicon": "/favicon.svg",
+	"navigation": {
+		"tabs": [
+			{
+				"tab": "Documentation",
+				"groups": [
+					{
+						"group": "Introduction",
+						"pages": [
+							"index",
+							"introduction/how-it-works",
+							"introduction/concepts"
+						]
+					},
+					{
+						"group": "Getting Started",
+						"pages": [
+							"quickstart",
+							"getting-started/nextjs-app-router"
+						]
+					},
+					{
+						"group": "React SDK",
+						"pages": [
+							"react/installation",
+							"react/syncsnap-upload-button",
+							"react/syncsnap-qr-code",
+							"react/use-syncsnap-job",
+							"react/create-upload-url"
+						]
+					},
+					{
+						"group": "Server SDK",
+						"pages": [
+							"server/installation",
+							"server/syncsnap-server",
+							"server/nextjs-route-handler"
+						]
+					},
+					{
+						"group": "Guides",
+						"pages": ["guides/styling", "guides/error-handling"]
+					}
+				]
+			},
+			{
+				"tab": "API Reference",
+				"groups": [
+					{
+						"group": "Types",
+						"pages": ["api-reference/types"]
+					},
+					{
+						"group": "React SDK",
+						"pages": [
+							"api-reference/react-use-syncsnap-job",
+							"api-reference/react-components"
+						]
+					},
+					{
+						"group": "Server SDK",
+						"pages": ["api-reference/server-syncsnap-server"]
+					}
+				]
+			}
+		]
+	},
+	"navbar": {
+		"links": [],
+		"primary": {
+			"type": "button",
+			"label": "GitHub",
+			"href": "https://github.com/syncsnapxyz"
+		}
+	},
+	"footer": {
+		"socials": {}
+	}
 }

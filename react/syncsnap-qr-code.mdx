@@ -1,0 +1,69 @@
+---
+title: "SyncsnapQrCode"
+description: "Display a QR code that points to the SyncSnap upload page"
+---
+
+# SyncsnapQrCode
+
+`SyncsnapQrCode` renders a QR code image that encodes the upload URL for a given job. The URL is built with [createUploadUrl](/react/create-upload-url) so the user’s phone opens the correct SyncSnap upload page with the job ID.
+
+## When to use
+
+- **SyncsnapUploadButton** — Use when you want the default button + dialog; it uses the QR internally.
+- **SyncsnapQrCode** — Use when you build your own UI (e.g. custom modal, different layout) and only need the QR image.
+
+You must have a `jobId` (from creating a job via your backend or [useSyncsnapJob](/react/use-syncsnap-job)) before rendering this component.
+
+## Basic usage
+
+```tsx
+import { SyncsnapQrCode } from "@syncsnap/react";
+
+<SyncsnapQrCode jobId={jobId} />
+```
+
+Renders a 240×240 QR code by default. The encoded URL is `https://upload.syncsnap.xyz/?job_id=<jobId>` unless you pass `baseUrl`.
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `jobId` | `string` | *required* | The SyncSnap job ID (from job creation). |
+| `baseUrl` | `string` | `"https://upload.syncsnap.xyz/"` | Base URL for the upload page. The final URL is `baseUrl + "?job_id=" + jobId`. |
+| `size` | `number` | `240` | Width and height of the QR image in pixels. |
+| `className` | `string` | — | Applied to the `<img>` element. |
+| `errorCorrectionLevel` | `"L" \| "M" \| "Q" \| "H"` | `"M"` | QR error correction level. |
+
+## Custom base URL
+
+For staging or a custom upload host:
+
+```tsx
+<SyncsnapQrCode
+  jobId={jobId}
+  baseUrl="https://upload.staging.syncsnap.xyz/"
+  size={280}
+/>
+```
+
+## With useSyncsnapJob
+
+Typical pattern: start a job with the hook, then show the QR when you have a `jobId`:
+
+```tsx
+const { jobId, start, isPolling, error } = useSyncsnapJob({
+  onCompleted: (job, presignedUrl) => { /* ... */ },
+});
+
+return (
+  <>
+    <button onClick={() => start()} disabled={isPolling}>
+      {isPolling ? "Preparing..." : "Show QR"}
+    </button>
+    {error && <p>{error.message}</p>}
+    {jobId && <SyncsnapQrCode jobId={jobId} size={260} />}
+  </>
+);
+```
+
+The component renders nothing until the QR data URL is generated (brief delay); it does not show a loading state by default. Add your own loading UI if needed.
