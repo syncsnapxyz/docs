@@ -28,23 +28,23 @@ This page walks through the flow from your web app to the uploaded file.
 
 The React SDK expects your app to expose these endpoints (the `syncsnap` Next.js helper implements them via a single catch-all route):
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/api/syncsnap/job` | Create a new job. Returns `{ id, projectId, status, createdAt, updatedAt }`. |
-| `GET`  | `/api/syncsnap/job/:id` | Get job status. Returns the full job object. |
-| `GET`  | `/api/syncsnap/job/:id/wait` | Server-side wait: backend polls until job completes or fails, then returns `{ job, result? }`. Query: `timeoutMs`, `intervalMs`. The `result` is whatever your server's `onCompleted` callback returns (or the presigned download URL when no callback). |
-| `GET`  | `/api/syncsnap/job/:id/download` | Get a presigned download URL for a completed job. Optional query: `?expiration=15` (minutes). Returns `{ url, fileName, expiration }` and optionally `completedPayload` when `onCompleted` is configured. |
+| Method | Path                             | Purpose                                                                                                                                                                                                                                                  |
+| ------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/syncsnap/job`              | Create a new job. Returns `{ id, projectId, status, createdAt, updatedAt }`.                                                                                                                                                                             |
+| `GET`  | `/api/syncsnap/job/:id`          | Get job status. Returns the full job object.                                                                                                                                                                                                             |
+| `GET`  | `/api/syncsnap/job/:id/wait`     | Server-side wait: backend polls until job completes or fails, then returns `{ job, result? }`. Query: `timeoutMs`, `intervalMs`. The `result` is whatever your server's `onCompleted` callback returns (or the presigned download URL when no callback). |
+| `GET`  | `/api/syncsnap/job/:id/download` | Get a presigned download URL for a completed job. Optional query: `?expiration=15` (minutes). Returns `{ url, fileName, expiration }` and optionally `completedPayload` when `onCompleted` is configured.                                                |
 
 The **base path** (`/api/syncsnap`) is configurable on the client via `createJobUrl`, `getJobUrl`, and `getWaitForCompletionUrl` in `useSyncsnapJob`.
 
 ## Job statuses
 
-| Status | Meaning |
-|--------|--------|
-| `pending` | Job created; waiting for the user to open the upload page. |
-| `in_progress` | User has started or is in the middle of uploading. |
-| `completed` | File uploaded successfully. You can fetch the presigned download URL. |
-| `failed` | Upload failed or was abandoned. |
+| Status        | Meaning                                                               |
+| ------------- | --------------------------------------------------------------------- |
+| `pending`     | Job created; waiting for the user to open the upload page.            |
+| `in_progress` | User has started or is in the middle of uploading.                    |
+| `completed`   | File uploaded successfully. You can fetch the presigned download URL. |
+| `failed`      | Upload failed or was abandoned.                                       |
 
 Your frontend typically calls the wait endpoint once; the server polls the job and returns when it's done, so the client doesn't poll itself.
 

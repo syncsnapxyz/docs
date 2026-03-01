@@ -1,0 +1,80 @@
+---
+title: "Rate limits"
+description: "SyncSnap API rate limits per project and how to handle 429 responses"
+---
+
+# Rate limits
+
+The SyncSnap API applies rate limiting per project so that no single project can overwhelm the service. When the limit is exceeded, the API returns **429 Too Many Requests** with a JSON body and rate-limit headers (including when to retry).
+
+## Limits
+
+Limits are enforced **per project** (per API key), **per minute**, using a token-bucket algorithm (smooth rate, with burst up to the configured maximum).
+
+| Scope           | Default          | Description                                                 |
+| --------------- | ---------------- | ----------------------------------------------------------- |
+| **Per project** | 100 requests/min | All requests authenticated with the same project (API key). |
+
+Only requests that are scoped to a project (e.g. job routes with a valid API key) are rate limited. Requests without a project are not limited by this middleware.
+
+## Which endpoints are limited?
+
+Rate limiting is applied to routes where a project is identified (e.g. after API key validation):
+
+- **Auth** — API key validation and related auth routes.
+- **Job** — Create job, get job, wait for completion, and get download URL.
+
+Job creation, status checks, wait, and download requests all count toward the per-project limit.
+
+## 429 response body
+
+When rate limited, the API responds with:
+
+```json
+{
+	"error": "rate limit exceeded: too many requests for this project"
+}
+```
+
+HTTP status is always **429**. The response also includes [rate-limit headers](#response-headers) and `Retry-After` so clients know when to retry.
+
+## Response headers
+
+For requests that are scoped to a project, the API sets these rate-limit headers on **both successful and 429** responses:
+
+| Header                   | Description                                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `x-rate-limit-limit`     | Maximum requests per minute allowed for this project.                                               |
+| `x-rate-limit-remaining` | Number of requests remaining in the current window (0 when rate limited).                           |
+| `x-rate-limit-reset`     | Unix timestamp (seconds) when the current rate-limit window resets (e.g. start of the next minute). |
+
+On **429** responses only, the API also sets:
+
+| Header        | Description                                                      |
+| ------------- | ---------------------------------------------------------------- |
+| `Retry-After` | Seconds until the window resets; wait this long before retrying. |
+
+These headers are only present when the request is authenticated with a project.
+
+## Handling rate limits in your app
+
+- **Backend** — If your server proxies to SyncSnap and you get a 429, return a sensible status and message to the client (e.g. 429 with the same `error` body) so the frontend can show a “Too many requests, try again shortly” message.
+- **Frontend** — Use [Error handling](/guides/error-handling): the React SDK’s `onError` and `error` state will receive failures from the wait endpoint. If the backend returns 429, the error message will reflect that; you can detect it (e.g. `err.message.includes('rate limit')`) and show a user-friendly message or retry after a short delay.
+
+Example: surface rate-limit errors in the UI and suggest retrying:
+
+```tsx
+<SyncsnapUploadButton
+	onError={(err) => {
+		if (err.message.includes("rate limit")) {
+			toast.error(
+				"Too many requests. Please wait a moment and try again.",
+			);
+		} else {
+			toast.error(err.message);
+		}
+	}}
+/>
+```
+
+Next: [Error handling](/guides/error-handling) for handling 429 and other errors in the React and server SDKs.

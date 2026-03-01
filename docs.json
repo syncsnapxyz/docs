@@ -2,11 +2,11 @@
 	"$schema": "https://mintlify.com/docs.json",
 	"theme": "mint",
 	"name": "SyncSnap Docs",
-	"description": "Documentation for SyncSnap — QR-based file transfer from phone to web",
+	"description": "Documentation for SyncSnap — cross-device file uploads with a developer-first experience",
 	"colors": {
-		"primary": "#16A34A",
-		"light": "#07C983",
-		"dark": "#15803D"
+		"primary": "#0284c7",
+		"light": "#0ea5e9",
+		"dark": "#0369a1"
 	},
 	"favicon": "/favicon.svg",
 	"navigation": {
@@ -49,7 +49,7 @@
 					},
 					{
 						"group": "Guides",
-						"pages": ["guides/styling", "guides/error-handling"]
+						"pages": ["guides/styling", "guides/error-handling", "guides/rate-limits"]
 					}
 				]
 			},

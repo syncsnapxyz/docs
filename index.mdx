@@ -1,15 +1,15 @@
 ---
 title: "Introduction"
-description: "SyncSnap lets users upload files from their phone to your web app by scanning a QR code."
+description: "Cross-device file uploads with a developer-first experience. Integrate in minutes."
 ---
 
-# Seamless File upload from phone to web
+# Cross-device uploads with a developer-first experience
 
-SyncSnap is the easiest way to add **QR-based file uploads** to your application. A user on your website starts a transfer, scans a QR code with their phone, uploads a file, and your app receives it—no account or app install required.
+SyncSnap helps users move from desktop to mobile capture in seconds. You ship a polished upload flow with fewer edge cases and no separate mobile app—one SDK, one API, and no account or app install required on the user's phone.
 
 <CardGroup cols={2}>
 	<Card title="Quickstart" icon="rocket" href="/quickstart">
-		Get SyncSnap running in minutes
+		Integrate in minutes — two files, a few lines each
 	</Card>
 	<Card
 		title="Next.js App Router"
@@ -22,18 +22,17 @@ SyncSnap is the easiest way to add **QR-based file uploads** to your application
 
 ## How it works
 
-1. **Your web app** creates a transfer job and shows a QR code.
-2. **The user** scans the QR code with their phone and is taken to the SyncSnap upload page.
-3. **They select and upload** a file (e.g. a photo or document).
-4. **Your app** calls a wait endpoint; the server polls until the job completes and returns a result (e.g. a secure download URL or custom payload).
+1. **Embed once** — Add the SyncSnap SDK and render one component where uploads begin.
+2. **Capture anywhere** — The user scans a QR code and switches to their phone for camera-friendly uploads.
+3. **Continue your flow** — Files stream back to your app and the wait endpoint returns the result (e.g. presigned download URL or custom payload).
 
 No mobile app, no sign-in on the phone—just scan and upload.
 
 ## What you need
 
-- A **SyncSnap** project and API key (get one in the [SyncSnap dashboard](https://syncsnap.xyz/dashboard)).
-- **Backend**: the `syncsnap` server SDK to create jobs and proxy job/download requests.
-- **Frontend**: the `@syncsnap/react` package for the upload button, QR code, and job polling.
+- A **SyncSnap** project and API key from the [dashboard](https://syncsnap.xyz/dashboard).
+- **Backend** — the `syncsnap` server SDK to create jobs and proxy job/download requests.
+- **Frontend** — the `@syncsnap/react` package for the upload button, QR code, and job polling.
 
 ## Frameworks
 

@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Get a minimal SyncSnap flow running with the Next.js App Router and React SDK."
+description: "Integrate in minutes — two files, a few lines each. Get a minimal SyncSnap flow running with Next.js and the React SDK."
 ---
 
 ## Prerequisites
@@ -44,11 +44,13 @@ import { createRouteHandler } from "syncsnap/next";
 const client = new SyncsnapServer();
 
 export const { GET, POST } = createRouteHandler({
-  client,
-  onCompleted: async (job, presigned) => {
-    // Optional: run when job completes. Return value is sent to the client as onCompleted(job, result).
-    return presigned ? { downloadUrl: presigned.url, fileName: presigned.fileName } : undefined;
-  },
+	client,
+	onCompleted: async (job, presigned) => {
+		// Optional: run when job completes. Return value is sent to the client as onCompleted(job, result).
+		return presigned
+			? { downloadUrl: presigned.url, fileName: presigned.fileName }
+			: undefined;
+	},
 });
 ```
 
@@ -74,8 +76,15 @@ export default function Page() {
 			buttonText="Scan to upload"
 			onCompleted={(job, result) => {
 				// result is whatever your server onCompleted returned (e.g. { downloadUrl, fileName })
-				if (result && typeof result === "object" && "downloadUrl" in result)
-					console.log("Download URL:", (result as { downloadUrl: string }).downloadUrl);
+				if (
+					result &&
+					typeof result === "object" &&
+					"downloadUrl" in result
+				)
+					console.log(
+						"Download URL:",
+						(result as { downloadUrl: string }).downloadUrl,
+					);
 			}}
 		/>
 	);
